@@ -138,3 +138,53 @@
   .badge-half    { @apply bg-orange-100 text-[#f38600]; }
   .badge-pending { @apply bg-purple-100 text-[#5c1383]; }
 }
+
+/* ─── Mobile-First Enhancements ──────────────────────────────────────────── */
+
+/* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
+@media screen and (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Smooth momentum scrolling on iOS */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Minimum touch target size (44px) for all interactive elements */
+button,
+[role="button"],
+a {
+  min-height: 36px;
+}
+
+/* Safe area insets for notched phones (iPhone X+) */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent text from overflowing on small screens */
+.truncate-mobile {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Better table scroll UX on mobile */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}
+

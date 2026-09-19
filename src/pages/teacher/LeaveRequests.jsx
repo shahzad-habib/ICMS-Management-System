@@ -80,11 +80,11 @@ export default function LeaveRequests() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
         {/* Left: Apply Leave Form */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 w-full">
           <LeaveForm onLeaveSubmitted={fetchMyLeaves} />
         </div>
 
-        {/* Right: Previous Leaves Table */}
+        {/* Right: Previous Leaves */}
         <div className="lg:col-span-2">
           <Card className="shadow-xs border border-[#e2e8f0]">
             <CardHeader className="pb-2">
@@ -101,59 +101,73 @@ export default function LeaveRequests() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-[#f8fafc] border-b border-[#e2e8f0] text-xs font-semibold text-[#64748b] uppercase tracking-wider">
-                      <th className="py-2 px-3">Leave Type</th>
-                      <th className="py-2 px-3">Dates</th>
-                      <th className="py-2 px-3">Reason</th>
-                      <th className="py-2 px-3">Submitted</th>
-                      <th className="py-2 px-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#e2e8f0] text-xs sm:text-sm">
-                    {loading ? (
-                      <tr>
-                        <td colSpan="5" className="py-8 text-center text-[#64748b]">
-                          <div className="flex items-center justify-center gap-2">
-                            <RotateCcw className="w-4 h-4 animate-spin text-[#003E78]" />
-                            <span>Loading leave requests...</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : leaves.length === 0 ? (
-                      <tr>
-                        <td colSpan="5" className="py-8 text-center text-[#94a3b8]">
-                          <div className="flex flex-col items-center justify-center gap-1">
-                            <AlertCircle className="w-6 h-6 text-gray-400" />
-                            <p>No leave applications submitted yet.</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      leaves.map((leave) => (
-                        <tr key={leave._id} className="hover:bg-[#f8fafc] transition-colors">
-                          <td className="py-3 px-4">
-                            <span className="font-semibold text-[#003E78]">{leave.leaveType}</span>
-                          </td>
-                          <td className="py-3 px-4 text-[#475569] text-xs whitespace-nowrap">
-                            <div className="font-medium text-[#0f172a]">{formatDate(leave.startDate)}</div>
-                            <div className="text-[#94a3b8]">to {formatDate(leave.endDate)}</div>
-                          </td>
-                          <td className="py-3 px-4 text-xs text-[#475569] max-w-xs truncate">
+              {loading ? (
+                <div className="py-8 flex items-center justify-center gap-2 text-[#64748b]">
+                  <RotateCcw className="w-4 h-4 animate-spin text-[#003E78]" />
+                  <span className="text-sm">Loading leave requests...</span>
+                </div>
+              ) : leaves.length === 0 ? (
+                <div className="py-8 flex flex-col items-center justify-center gap-1 text-[#94a3b8]">
+                  <AlertCircle className="w-6 h-6 text-gray-400" />
+                  <p className="text-sm">No leave applications submitted yet.</p>
+                </div>
+              ) : (
+                <>
+                  {/* ── Mobile Card List ── */}
+                  <div className="sm:hidden divide-y divide-[#e2e8f0]">
+                    {leaves.map((leave) => (
+                      <div key={leave._id} className="p-4 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold text-[#003E78] text-sm">{leave.leaveType}</span>
+                          {getStatusBadge(leave.status)}
+                        </div>
+                        <div className="text-xs text-[#475569]">
+                          <span className="font-medium text-[#0f172a]">{formatDate(leave.startDate)}</span>
+                          <span className="text-[#94a3b8]"> → </span>
+                          <span className="font-medium text-[#0f172a]">{formatDate(leave.endDate)}</span>
+                        </div>
+                        {leave.reason && (
+                          <p className="text-[11px] text-[#64748b] bg-[#f8fafc] rounded px-2 py-1.5 border border-[#e2e8f0] line-clamp-2">
                             {leave.reason}
-                          </td>
-                          <td className="py-3 px-4 text-xs text-[#94a3b8] whitespace-nowrap">
-                            {formatDate(leave.createdAt)}
-                          </td>
-                          <td className="py-3 px-4 whitespace-nowrap">{getStatusBadge(leave.status)}</td>
+                          </p>
+                        )}
+                        <p className="text-[10px] text-[#94a3b8]">Submitted: {formatDate(leave.createdAt)}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* ── Desktop Table ── */}
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-[#f8fafc] border-b border-[#e2e8f0] text-xs font-semibold text-[#64748b] uppercase tracking-wider">
+                          <th className="py-2 px-3">Leave Type</th>
+                          <th className="py-2 px-3">Dates</th>
+                          <th className="py-2 px-3">Reason</th>
+                          <th className="py-2 px-3">Submitted</th>
+                          <th className="py-2 px-3">Status</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      </thead>
+                      <tbody className="divide-y divide-[#e2e8f0] text-xs sm:text-sm">
+                        {leaves.map((leave) => (
+                          <tr key={leave._id} className="hover:bg-[#f8fafc] transition-colors">
+                            <td className="py-3 px-4">
+                              <span className="font-semibold text-[#003E78]">{leave.leaveType}</span>
+                            </td>
+                            <td className="py-3 px-4 text-[#475569] text-xs whitespace-nowrap">
+                              <div className="font-medium text-[#0f172a]">{formatDate(leave.startDate)}</div>
+                              <div className="text-[#94a3b8]">to {formatDate(leave.endDate)}</div>
+                            </td>
+                            <td className="py-3 px-4 text-xs text-[#475569] max-w-xs truncate">{leave.reason}</td>
+                            <td className="py-3 px-4 text-xs text-[#94a3b8] whitespace-nowrap">{formatDate(leave.createdAt)}</td>
+                            <td className="py-3 px-4 whitespace-nowrap">{getStatusBadge(leave.status)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

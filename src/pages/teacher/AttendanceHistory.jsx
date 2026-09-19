@@ -22,21 +22,14 @@ export default function AttendanceHistory() {
       const res = await api.get(`/attendance/my-records?year=${selectedYear}&month=${selectedMonth}`);
       setRecords(res.data || []);
     } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch attendance records.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Failed to fetch attendance records.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   }, [selectedYear, selectedMonth, toast]);
 
-  useEffect(() => {
-    fetchRecords();
-  }, [fetchRecords]);
+  useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
-  // Aggregate metrics for selected period
   const totalDays = records.length;
   const presentDays = records.filter((r) => r.status === 'Present').length;
   const halfDays = records.filter((r) => r.status === 'Half Day').length;
@@ -52,37 +45,30 @@ export default function AttendanceHistory() {
       case 'Present':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Present
+            <CheckCircle2 className="w-3.5 h-3.5" />Present
           </span>
         );
       case 'Half Day':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            Half Day
+            <AlertTriangle className="w-3.5 h-3.5" />Half Day
           </span>
         );
       case 'Absent':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
-            <XCircle className="w-3.5 h-3.5" />
-            Absent
+            <XCircle className="w-3.5 h-3.5" />Absent
           </span>
         );
       default:
-        return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-            {status}
-          </span>
-        );
+        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{status}</span>;
     }
   };
 
   return (
     <div className="space-y-3.5">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col gap-3">
         <div>
           <h1 className="text-xl font-bold text-[#0f172a] flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-[#003E78]" />
@@ -93,14 +79,14 @@ export default function AttendanceHistory() {
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-2 bg-white p-1.5 rounded-lg border border-[#e2e8f0] shadow-2xs">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-[#64748b]" />
+        {/* Filters — wraps on mobile */}
+        <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-lg border border-[#e2e8f0] shadow-2xs">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <Calendar className="w-3.5 h-3.5 text-[#64748b] shrink-0" />
             <Select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="text-xs font-medium py-1 px-2 h-8"
+              className="text-xs font-medium py-1 px-2 h-9 flex-1 min-w-[100px]"
             >
               <option value="01">January</option>
               <option value="02">February</option>
@@ -115,26 +101,24 @@ export default function AttendanceHistory() {
               <option value="11">November</option>
               <option value="12">December</option>
             </Select>
-
             <Select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="text-xs font-medium py-1 px-2 h-8"
+              className="text-xs font-medium py-1 px-2 h-9 w-[80px]"
             >
               <option value="2025">2025</option>
               <option value="2026">2026</option>
               <option value="2027">2027</option>
             </Select>
           </div>
-
           <Button
             variant="outline"
             onClick={fetchRecords}
             disabled={loading}
-            className="p-1.5 h-8 text-[#003E78] border-[#e2e8f0] hover:bg-gray-50"
+            className="p-2 h-9 w-9 text-[#003E78] border-[#e2e8f0] hover:bg-gray-50 shrink-0"
             title="Refresh"
           >
-            <RotateCcw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
@@ -163,76 +147,115 @@ export default function AttendanceHistory() {
         </div>
       </div>
 
-      {/* Records Table */}
+      {/* Records */}
       <Card className="shadow-xs border border-[#e2e8f0]">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-bold">Monthly Breakdown</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#f8fafc] border-b border-[#e2e8f0] text-xs font-semibold text-[#64748b] uppercase tracking-wider">
-                  <th className="py-2 px-3">Date</th>
-                  <th className="py-2 px-3">Check-In</th>
-                  <th className="py-2 px-3">Check-Out</th>
-                  <th className="py-2 px-3">Working Hours</th>
-                  <th className="py-2 px-3">Status</th>
-                  <th className="py-2 px-3">Remarks / Reason</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#e2e8f0] text-xs sm:text-sm">
-                {loading ? (
-                  <tr>
-                    <td colSpan="6" className="py-8 text-center text-[#64748b]">
-                      <div className="flex items-center justify-center gap-2">
-                        <RotateCcw className="w-4 h-4 animate-spin text-[#003E78]" />
-                        <span>Loading records...</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : records.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="py-8 text-center text-[#94a3b8]">
-                      No attendance records found for this period.
-                    </td>
-                  </tr>
-                ) : (
-                  records.map((r) => (
-                    <tr key={r._id} className="hover:bg-[#f8fafc] transition-colors">
-                      <td className="py-3 px-4 font-semibold text-[#0f172a]">
-                        {r.date}
+          {loading ? (
+            <div className="py-10 flex items-center justify-center gap-2 text-[#64748b]">
+              <RotateCcw className="w-4 h-4 animate-spin text-[#003E78]" />
+              <span className="text-sm">Loading records...</span>
+            </div>
+          ) : records.length === 0 ? (
+            <p className="py-10 text-center text-sm text-[#94a3b8]">
+              No attendance records found for this period.
+            </p>
+          ) : (
+            <>
+              {/* ── Mobile Card List ── */}
+              <div className="sm:hidden divide-y divide-[#e2e8f0]">
+                {records.map((r) => (
+                  <div key={r._id} className="p-4 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[#0f172a] text-sm">{r.date}</span>
+                      <div className="flex items-center gap-1.5">
                         {r.isManualEntry && (
-                          <span className="ml-2 text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-normal">
-                            Manual
-                          </span>
+                          <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">Manual</span>
                         )}
-                      </td>
-                      <td className="py-3 px-4 text-[#475569]">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#94a3b8]" />
-                          <span>{formatTime(r.checkInTime)}</span>
+                        {getStatusBadge(r.status)}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-[#f8fafc] rounded-lg p-2 border border-[#e2e8f0]">
+                        <p className="text-[10px] text-[#94a3b8] font-medium uppercase tracking-wider mb-0.5">Check-In</p>
+                        <div className="flex items-center gap-1 text-[#0f172a] font-semibold">
+                          <Clock className="w-3 h-3 text-[#94a3b8]" />
+                          {formatTime(r.checkInTime)}
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-[#475569]">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#94a3b8]" />
-                          <span>{formatTime(r.checkOutTime)}</span>
+                      </div>
+                      <div className="bg-[#f8fafc] rounded-lg p-2 border border-[#e2e8f0]">
+                        <p className="text-[10px] text-[#94a3b8] font-medium uppercase tracking-wider mb-0.5">Check-Out</p>
+                        <div className="flex items-center gap-1 text-[#0f172a] font-semibold">
+                          <Clock className="w-3 h-3 text-[#94a3b8]" />
+                          {formatTime(r.checkOutTime)}
                         </div>
-                      </td>
-                      <td className="py-3 px-4 font-semibold text-[#0f172a]">
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#64748b]">Working Hours</span>
+                      <span className="font-bold text-[#0f172a]">
                         {r.workingHours != null ? `${r.workingHours} hrs` : 'In Progress'}
-                      </td>
-                      <td className="py-3 px-4">{getStatusBadge(r.status)}</td>
-                      <td className="py-3 px-4 text-xs text-[#64748b] max-w-xs truncate">
-                        {r.checkOutReason || '—'}
-                      </td>
+                      </span>
+                    </div>
+                    {r.checkOutReason && (
+                      <p className="text-[11px] text-[#64748b] bg-[#f8fafc] rounded px-2 py-1.5 border border-[#e2e8f0]">
+                        📝 {r.checkOutReason}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Desktop Table ── */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#f8fafc] border-b border-[#e2e8f0] text-xs font-semibold text-[#64748b] uppercase tracking-wider">
+                      <th className="py-2 px-3">Date</th>
+                      <th className="py-2 px-3">Check-In</th>
+                      <th className="py-2 px-3">Check-Out</th>
+                      <th className="py-2 px-3">Working Hours</th>
+                      <th className="py-2 px-3">Status</th>
+                      <th className="py-2 px-3">Remarks / Reason</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-[#e2e8f0] text-xs sm:text-sm">
+                    {records.map((r) => (
+                      <tr key={r._id} className="hover:bg-[#f8fafc] transition-colors">
+                        <td className="py-3 px-4 font-semibold text-[#0f172a]">
+                          {r.date}
+                          {r.isManualEntry && (
+                            <span className="ml-2 text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-normal">Manual</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-[#475569]">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-[#94a3b8]" />
+                            <span>{formatTime(r.checkInTime)}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-[#475569]">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-[#94a3b8]" />
+                            <span>{formatTime(r.checkOutTime)}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-[#0f172a]">
+                          {r.workingHours != null ? `${r.workingHours} hrs` : 'In Progress'}
+                        </td>
+                        <td className="py-3 px-4">{getStatusBadge(r.status)}</td>
+                        <td className="py-3 px-4 text-xs text-[#64748b] max-w-xs truncate">
+                          {r.checkOutReason || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
