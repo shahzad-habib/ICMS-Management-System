@@ -168,7 +168,7 @@ export default function InstallPrompt() {
                 ) : (
                   <>
                     <Download className="w-3.5 h-3.5 text-current" />
-                    <span>Install App</span>
+                    <span>Install</span>
                   </>
                 )}
               </button>

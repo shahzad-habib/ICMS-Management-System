@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+let BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// Fix for production environment variables missing the /api suffix
+if (BASE_URL.endsWith('.vercel.app') || BASE_URL.endsWith('.onrender.com')) {
+  BASE_URL += '/api';
+} else if (!BASE_URL.endsWith('/api') && !BASE_URL.endsWith('/api/')) {
+  // Catch any other cases where /api is missing (unless it's an explicitly different path)
+  if (BASE_URL.match(/^https?:\/\/[^\/]+$/)) {
+    BASE_URL += '/api';
+  }
+}
 
 const api = axios.create({
   baseURL: BASE_URL,
