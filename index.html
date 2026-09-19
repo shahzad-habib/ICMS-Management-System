@@ -3,10 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/icms-logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- PWA Primary Meta Tags -->
     <title>ICMS Smart Attendance Management System</title>
+    <meta name="title" content="ICMS Smart Attendance Management System" />
+    <meta name="description" content="Institute College Management System - Smart Mobile & Desktop Attendance Management" />
+    
+    <!-- Theme & Color Settings -->
+    <meta name="theme-color" content="#003E78" />
+    <meta name="msapplication-TileColor" content="#003E78" />
+    <meta name="msapplication-navbutton-color" content="#003E78" />
+    
+    <!-- iOS / Apple Web App Settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ICMS" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Android / General Mobile Settings -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="ICMS Attendance" />
   </head>
-  <body>
+  <body class="safe-area-bottom">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

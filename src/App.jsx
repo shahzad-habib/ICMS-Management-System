@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/layout/AdminLayout';
 import TeacherLayout from './components/layout/TeacherLayout';
 import Login from './pages/auth/Login';
+import InstallPrompt from './components/InstallPrompt';
 
 // Teacher Pages
 import TeacherDashboard from './pages/teacher/Dashboard';
@@ -25,6 +26,9 @@ function App() {
     <ToastProvider>
       <AuthProvider>
         <Router>
+          {/* Progressive Web App Install Prompt Banner & Guide */}
+          <InstallPrompt />
+          
           <Routes>
             <Route path="/login" element={<Login />} />
             
