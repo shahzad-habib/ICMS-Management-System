@@ -32,6 +32,7 @@ export default function AttendanceLogs() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [records, setRecords] = useState([]);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -56,7 +57,14 @@ export default function AttendanceLogs() {
       if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const res = await api.get('/admin/attendance', { params });
-      setRecords(res.data || []);
+      // Backend now returns { records, pagination } for scalability
+      if (res.data?.records) {
+        setRecords(res.data.records);
+        setPagination(res.data.pagination || { total: 0, page: 1, totalPages: 1 });
+      } else {
+        // Fallback for older response format
+        setRecords(Array.isArray(res.data) ? res.data : []);
+      }
     } catch {
       toast({
         title: 'Error',
