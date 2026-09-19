@@ -1,0 +1,140 @@
+/* ============================================================
+   ICMS Smart Attendance System — Global Stylesheet
+   Design System: 60-30-10 Clean Dashboard Theme
+   ============================================================ */
+
+/* ─── Google Font Import ─────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ─── Tailwind Directives ────────────────────────────────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Custom Properties (Design Tokens) ─────────────────────────────── */
+:root {
+  /* Brand Colors */
+  --color-brand-blue:   #EAD508;   /* ICMS Primary #EAD508 */
+  --color-brand-light:  #d4c107;
+  --color-brand-dark:   #c4b206;
+
+  /* Dashboard Card Accent Colors */
+  --color-card-red:     #a5361b;   /* Absent / Danger  */
+  --color-card-purple:  #5c1383;   /* Leaves / Purple  */
+  --color-card-orange:  #f38600;   /* Half Day / Warn  */
+  --color-card-green:   #0e7816;   /* Present / Success*/
+  --color-card-blue:    #003E78;   /* Info / Default   */
+
+  /* 60% Neutral Background */
+  --color-bg:           #F7FAFC;
+  --color-surface:      #ffffff;
+  --color-border:       #e2e8f0;
+
+  /* Typography */
+  --color-text-primary:   #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted:     #94a3b8;
+
+  /* Elevation / Shadow */
+  --shadow-card:  0 4px 24px rgba(0, 62, 120, 0.08);
+  --shadow-hover: 0 8px 32px rgba(0, 62, 120, 0.16);
+
+  /* Transitions */
+  --transition-base: 150ms ease-in-out;
+}
+
+/* ─── Base Reset & Typography ────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-[#0f172a] font-sans;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+/* ─── Reusable Component Classes ─────────────────────────────────────────── */
+@layer components {
+
+  /* Dashboard Stat Card Base */
+  .icms-card {
+    @apply bg-surface rounded-xl p-4 sm:p-5 shadow-card transition-shadow duration-200;
+  }
+  .icms-card:hover {
+    @apply shadow-hover;
+  }
+
+
+  /* Primary Button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
+           rounded-xl font-semibold text-sm text-[#0f172a]
+           transition-all duration-150 focus:outline-none focus:ring-2
+           focus:ring-offset-2;
+    background-color: #EAD508;
+  }
+  .btn-primary:hover {
+    background-color: #003D76;
+    color: #ffffff;
+    @apply shadow-hover;
+  }
+  .btn-primary:focus {
+    --tw-ring-color: #EAD508;
+  }
+
+  /* Global Primary Action Buttons across website: #EAD508 with #003D76 hover */
+  button.bg-\[\#003E78\],
+  a.bg-\[\#003E78\],
+  .bg-\[\#003E78\] {
+    background-color: #EAD508 !important;
+    color: #0f172a !important;
+    transition: background-color 150ms ease-in-out, color 150ms ease-in-out !important;
+  }
+  button.bg-\[\#003E78\]:hover,
+  a.bg-\[\#003E78\]:hover,
+  .bg-\[\#003E78\]:hover,
+  .hover\:bg-\[\#002850\]:hover {
+    background-color: #003D76 !important;
+    color: #ffffff !important;
+  }
+
+  /* Input field */
+  .icms-input {
+    @apply w-full rounded-xl border border-[#e2e8f0] bg-surface px-4 py-2.5
+           text-sm text-[#0f172a] placeholder:text-[#94a3b8]
+           focus:outline-none focus:ring-2 focus:border-transparent
+           transition duration-150;
+    --tw-ring-color: var(--color-brand-blue);
+  }
+
+  /* Sidebar nav item */
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium
+           text-[#475569] cursor-pointer transition-all duration-150;
+  }
+  .nav-item:hover, .nav-item.active {
+    background-color: rgba(0, 62, 120, 0.08);
+    color: var(--color-brand-blue);
+  }
+
+  /* Status Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-present { @apply bg-green-100 text-[#0e7816]; }
+  .badge-absent  { @apply bg-red-100   text-[#a5361b]; }
+  .badge-half    { @apply bg-orange-100 text-[#f38600]; }
+  .badge-pending { @apply bg-purple-100 text-[#5c1383]; }
+}
