@@ -7,7 +7,7 @@ import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/Table';
 import api from '../../api/axios';
-import { UserPlus, Pencil, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { UserPlus, Pencil, Eye, EyeOff, Loader2, Trash2 } from 'lucide-react';
 
 const EMPTY_ADD = { name: '', employeeId: '', department: '', password: '', phone: '' };
 
@@ -28,6 +28,11 @@ export default function TeacherManagement() {
   const [editTarget, setEditTarget] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', department: '', phone: '', password: '' });
   const [showEditPw, setShowEditPw] = useState(false);
+
+  // ── Delete modal ───────────────────────────────────────────
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => { fetchTeachers(); }, []);
 
@@ -121,6 +126,32 @@ export default function TeacherManagement() {
     }
   };
 
+  // ── Delete ─────────────────────────────────────────────────
+  const openDelete = (teacher) => {
+    setDeleteTarget(teacher);
+    setIsDeleteOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/admin/teachers/${deleteTarget._id}`);
+      toast({ title: 'Success', description: 'Teacher deleted successfully.' });
+      setTeachers(teachers.filter((t) => t._id !== deleteTarget._id));
+      setIsDeleteOpen(false);
+      setDeleteTarget(null);
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: err.response?.data?.message || 'Failed to delete teacher',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#003E78]" /></div>;
   }
@@ -154,7 +185,7 @@ export default function TeacherManagement() {
                     <TableHead>Department</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right min-w-[220px]">Actions</TableHead>
+                    <TableHead className="text-right min-w-[240px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -190,11 +221,21 @@ export default function TeacherManagement() {
                             onClick={() => handleToggleStatus(teacher._id)}
                             className={`text-[11px] px-2 h-7 shadow-xs ${
                               teacher.isActive
-                                ? 'border-red-200 text-red-600 hover:bg-red-50'
+                                ? 'border-amber-200 text-amber-700 hover:bg-amber-50'
                                 : 'border-green-200 text-green-600 hover:bg-green-50'
                             }`}
                           >
                             {teacher.isActive ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          {/* Delete */}
+                          <Button
+                            variant="outline"
+                            onClick={() => openDelete(teacher)}
+                            className="text-[11px] px-2 h-7 shadow-xs border-red-200 text-red-600 hover:bg-red-50"
+                            title="Delete Teacher"
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Delete
                           </Button>
                         </div>
                       </TableCell>
@@ -295,6 +336,46 @@ export default function TeacherManagement() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* ══ Delete Confirmation Modal ══════════════════════════ */}
+      <Modal
+        isOpen={isDeleteOpen}
+        onClose={() => !isDeleting && setIsDeleteOpen(false)}
+        title="Delete Staff Member"
+        description="Permanently remove teacher account and related data."
+      >
+        <div className="space-y-4 mt-2">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700">
+            <p className="font-semibold text-sm mb-1 text-red-800">Are you sure?</p>
+            <p>
+              You are about to permanently delete <span className="font-bold text-red-900">{deleteTarget?.name}</span> ({deleteTarget?.employeeId}).
+            </p>
+            <p className="mt-1 text-[11px] text-red-600/90">
+              This action cannot be undone. All attendance records and leave applications associated with this teacher will also be cleaned up.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDeleteOpen(false)}
+              disabled={isDeleting}
+              className="text-xs h-8 px-3 border-gray-300 hover:bg-gray-50"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="text-xs h-8 px-3 bg-red-600 hover:bg-red-700 text-white font-semibold shadow-xs"
+            >
+              {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+            </Button>
+          </div>
+        </div>
       </Modal>
 
     </div>
