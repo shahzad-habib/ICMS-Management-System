@@ -18,6 +18,8 @@ export default function TeacherDashboard() {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [isCheckedOut, setIsCheckedOut] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Not Checked In');
+  const [checkInTimeStr, setCheckInTimeStr] = useState('');
+  const [checkOutTimeStr, setCheckOutTimeStr] = useState('');
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [weeklyHours, setWeeklyHours] = useState(0);
 
@@ -36,24 +38,32 @@ export default function TeacherDashboard() {
       const todayRecord = records.find((r) => r.date === todayStr);
       if (todayRecord) {
         setIsCheckedIn(true);
+        const inTime = todayRecord.checkInTime
+          ? new Date(todayRecord.checkInTime).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : '';
+        setCheckInTimeStr(inTime);
+
         if (todayRecord.checkOutTime) {
           setIsCheckedOut(true);
           const outTime = new Date(todayRecord.checkOutTime).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
           });
+          setCheckOutTimeStr(outTime);
           setStatusMessage(`Checked Out at ${outTime} (${todayRecord.workingHours || 0} hrs • ${todayRecord.status})`);
         } else if (todayRecord.checkInTime) {
           setIsCheckedOut(false);
-          const inTime = new Date(todayRecord.checkInTime).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
+          setCheckOutTimeStr('');
           setStatusMessage(`Checked In at ${inTime}`);
         }
       } else {
         setIsCheckedIn(false);
         setIsCheckedOut(false);
+        setCheckInTimeStr('');
+        setCheckOutTimeStr('');
         setStatusMessage('Not Checked In');
       }
 
@@ -84,28 +94,28 @@ export default function TeacherDashboard() {
   const handleCheckIn = async () => {
     setIsActionLoading(true);
     try {
-      await api.post('/attendance/check-in');
+      const res = await api.post('/attendance/check-in');
+      const inTime = res.data?.attendance?.checkInTime
+        ? new Date(res.data.attendance.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       setIsCheckedIn(true);
-      setStatusMessage(`Checked In at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+      setCheckInTimeStr(inTime);
+      setStatusMessage(`Checked In at ${inTime}`);
       toast({ title: 'Success', description: 'Checked in successfully.' });
       fetchAttendanceStatus();
     } catch (error) {
-      if (error.response?.status === 403) {
-        toast({
-          title: 'Access Denied',
-          description: error.response.data.message || 'Please connect to the official ICMS Wi-Fi.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: error.response?.data?.message || 'Failed to check in.',
-          variant: 'destructive',
-        });
-        if (error.response?.data?.message === 'You have already checked in for today.') {
-          setIsCheckedIn(true);
-          fetchAttendanceStatus();
-        }
+      const msg = error.response?.data?.message || 'Failed to check in.';
+      toast({
+        title: error.response?.status === 403 ? 'Access Denied' : 'Check-In Error',
+        description: msg,
+        variant: 'destructive',
+      });
+      if (
+        error.response?.status === 400 &&
+        (msg.includes('already signed in') || msg.includes('already checked in'))
+      ) {
+        setIsCheckedIn(true);
+        fetchAttendanceStatus();
       }
     } finally {
       setIsActionLoading(false);
@@ -121,34 +131,33 @@ export default function TeacherDashboard() {
     try {
       const payload = reason ? { checkOutReason: reason } : {};
       const res = await api.post('/attendance/check-out', payload);
+      const outTime = res.data?.attendance?.checkOutTime
+        ? new Date(res.data.attendance.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       setIsCheckedOut(true);
-      const hours = res.data?.attendance?.workingHours || '';
+      setCheckOutTimeStr(outTime);
+      const hours = res.data?.attendance?.workingHours != null ? res.data.attendance.workingHours : '';
       setStatusMessage(
-        `Checked Out at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}${
-          hours ? ` (${hours} hrs)` : ''
-        }`
+        `Checked Out at ${outTime}${hours !== '' ? ` (${hours} hrs)` : ''}`
       );
       toast({ title: 'Success', description: 'Checked out successfully.' });
       setIsModalOpen(false);
       setCheckOutReason('');
       fetchAttendanceStatus();
     } catch (error) {
-      if (error.response?.status === 403) {
-        toast({
-          title: 'Access Denied',
-          description: error.response.data.message || 'Please connect to the official ICMS Wi-Fi.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: error.response?.data?.message || 'Failed to check out.',
-          variant: 'destructive',
-        });
-        if (error.response?.data?.message === 'You have already checked out for today.') {
-          setIsCheckedOut(true);
-          fetchAttendanceStatus();
-        }
+      const msg = error.response?.data?.message || 'Failed to check out.';
+      toast({
+        title: error.response?.status === 403 ? 'Access Denied' : 'Check-Out Error',
+        description: msg,
+        variant: 'destructive',
+      });
+      if (
+        error.response?.status === 400 &&
+        msg.includes('already checked out')
+      ) {
+        setIsCheckedOut(true);
+        setIsModalOpen(false);
+        fetchAttendanceStatus();
       }
     } finally {
       setIsActionLoading(false);
@@ -204,29 +213,48 @@ export default function TeacherDashboard() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                {!isCheckedIn && !isCheckedOut && (
+              {/* Atomic Side-by-Side Check-In / Check-Out Buttons */}
+              <div className="space-y-2.5">
+                <div className="grid grid-cols-2 gap-2.5">
+                  {/* [Check-In] Button */}
                   <Button
+                    type="button"
                     onClick={handleCheckIn}
-                    className="w-full bg-[#003E78] hover:bg-[#002850] text-white py-2 font-semibold shadow-xs text-sm"
-                    disabled={isActionLoading}
+                    disabled={isCheckedIn || isActionLoading}
+                    className={`w-full py-2.5 px-3 font-semibold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 ${
+                      !isCheckedIn
+                        ? 'bg-[#003E78] hover:bg-[#002850] text-white active:scale-[0.98]'
+                        : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed shadow-none'
+                    }`}
                   >
-                    {isActionLoading ? 'Connecting...' : 'Sign-In (Check-In)'}
+                    {isActionLoading && !isCheckedIn ? 'Connecting...' : 'Check-In'}
                   </Button>
-                )}
-                {isCheckedIn && !isCheckedOut && (
+
+                  {/* [Check-Out] Button */}
                   <Button
+                    type="button"
                     onClick={handleCheckOutInit}
-                    className="w-full bg-[#f38600] hover:bg-[#d97700] text-white py-2 font-semibold shadow-xs text-sm"
-                    disabled={isActionLoading}
+                    disabled={!isCheckedIn || isCheckedOut || isActionLoading}
+                    className={`w-full py-2.5 px-3 font-semibold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 ${
+                      isCheckedIn && !isCheckedOut
+                        ? 'bg-[#f38600] hover:bg-[#d97700] text-white active:scale-[0.98]'
+                        : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed shadow-none'
+                    }`}
                   >
-                    {isActionLoading ? 'Processing...' : 'Sign-Out (Check-Out)'}
+                    {isActionLoading && isCheckedIn && !isCheckedOut ? 'Processing...' : 'Check-Out'}
                   </Button>
-                )}
-                {isCheckedOut && (
-                  <div className="text-center text-xs font-semibold text-[#0e7816] bg-green-50 py-2 px-3 rounded-lg border border-green-200 flex items-center justify-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Attendance Completed for Today</span>
+                </div>
+
+                {/* Inline Status Timestamp Text */}
+                {isCheckedIn && (
+                  <div className="text-center text-xs font-semibold py-2 px-3 rounded-lg bg-[#f8fafc] border border-[#e2e8f0] text-[#334155] flex items-center justify-center gap-1.5 flex-wrap">
+                    <span>🟢 Checked In at {checkInTimeStr || 'Today'}</span>
+                    {isCheckedOut && (
+                      <>
+                        <span className="text-[#94a3b8]">|</span>
+                        <span>🔴 Checked Out at {checkOutTimeStr || 'Today'}</span>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

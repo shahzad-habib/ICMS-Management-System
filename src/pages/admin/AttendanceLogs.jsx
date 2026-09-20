@@ -20,7 +20,8 @@ import {
   Wifi,
   ShieldAlert,
   RotateCcw,
-  UserCheck
+  UserCheck,
+  ChevronDown
 } from 'lucide-react';
 
 export default function AttendanceLogs() {
@@ -35,6 +36,7 @@ export default function AttendanceLogs() {
   const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
 
   // Manual Attendance Modal
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
@@ -159,35 +161,62 @@ export default function AttendanceLogs() {
     return new Date(timeStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const getStatusBadge = (status) => {
+  // Handle direct inline status override (Present, Absent, Leave)
+  const handleStatusChange = async (recordId, newStatus) => {
+    if (!recordId || !newStatus) return;
+
+    const previousRecords = [...records];
+    // Optimistic UI update
+    setRecords((prev) =>
+      prev.map((r) => (r._id === recordId ? { ...r, status: newStatus } : r))
+    );
+    setUpdatingStatusId(recordId);
+
+    try {
+      await api.patch(`/admin/attendance/${recordId}/status`, { status: newStatus });
+      toast({
+        title: 'Status Updated',
+        description: `Status changed to ${newStatus}.`,
+      });
+    } catch (error) {
+      setRecords(previousRecords);
+      toast({
+        title: 'Update Failed',
+        description: error.response?.data?.message || 'Failed to update attendance status.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
+
+  const getStatusBadgeStyles = (status) => {
     switch (status) {
       case 'Present':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Present
-          </span>
-        );
-      case 'Half Day':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            Half Day
-          </span>
-        );
+        return 'bg-emerald-50 text-emerald-700 border-emerald-300 focus:ring-emerald-500';
       case 'Absent':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
-            <XCircle className="w-3.5 h-3.5" />
-            Absent
-          </span>
-        );
+        return 'bg-red-50 text-red-700 border-red-300 focus:ring-red-500';
+      case 'Leave':
+        return 'bg-purple-50 text-purple-700 border-purple-300 focus:ring-purple-500';
+      case 'Half Day':
+        return 'bg-amber-50 text-amber-700 border-amber-300 focus:ring-amber-500';
       default:
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-            {status}
-          </span>
-        );
+        return 'bg-gray-100 text-gray-700 border-gray-300 focus:ring-gray-400';
+    }
+  };
+
+  const getStatusDot = (status) => {
+    switch (status) {
+      case 'Present':
+        return 'bg-emerald-500';
+      case 'Absent':
+        return 'bg-red-500';
+      case 'Leave':
+        return 'bg-purple-500';
+      case 'Half Day':
+        return 'bg-amber-500';
+      default:
+        return 'bg-gray-400';
     }
   };
 
@@ -279,6 +308,7 @@ export default function AttendanceLogs() {
               <option value="Present">Present Only</option>
               <option value="Half Day">Half Day Only</option>
               <option value="Absent">Absent Only</option>
+              <option value="Leave">Leave Only</option>
             </Select>
           </div>
 
@@ -379,7 +409,28 @@ export default function AttendanceLogs() {
                         {r.workingHours != null ? `${r.workingHours} hrs` : <span className="text-amber-600 font-normal">Active</span>}
                       </td>
                       <td className="py-2.5 px-3 whitespace-nowrap">
-                        {getStatusBadge(r.status)}
+                        <div className="relative inline-flex items-center">
+                          <span className={`w-2 h-2 rounded-full absolute left-2.5 pointer-events-none ${getStatusDot(r.status)}`} />
+                          <select
+                            value={r.status || 'Present'}
+                            disabled={updatingStatusId === r._id}
+                            onChange={(e) => handleStatusChange(r._id, e.target.value)}
+                            className={`appearance-none cursor-pointer pl-6 pr-7 py-1 rounded-lg text-xs font-semibold border transition-all shadow-2xs hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60 ${getStatusBadgeStyles(r.status)}`}
+                            title="Click to override status (Present, Absent, Leave)"
+                          >
+                            <option value="Present" className="bg-white text-emerald-700 font-medium">Present</option>
+                            <option value="Absent" className="bg-white text-red-700 font-medium">Absent</option>
+                            <option value="Leave" className="bg-white text-purple-700 font-medium">Leave</option>
+                            {r.status === 'Half Day' && (
+                              <option value="Half Day" className="bg-white text-amber-700 font-medium">Half Day</option>
+                            )}
+                          </select>
+                          {updatingStatusId === r._id ? (
+                            <RotateCcw className="w-3.5 h-3.5 animate-spin absolute right-2 pointer-events-none text-[#64748b]" />
+                          ) : (
+                            <ChevronDown className="w-3.5 h-3.5 absolute right-2 pointer-events-none text-current opacity-70" />
+                          )}
+                        </div>
                       </td>
                       <td className="py-2.5 px-3 whitespace-nowrap text-xs">
                         {r.isManualEntry ? (
