@@ -9,7 +9,6 @@ import { useToast } from '../../components/ui/Toast';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/Table';
 import api from '../../api/axios';
 import { Loader2 } from 'lucide-react';
-import SystemSettingsCard from '../../components/admin/SystemSettingsCard';
 
 export default function AdminDashboard() {
   const { user } = useContext(AuthContext);
@@ -18,6 +17,9 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({ totalStaff: 0, presentToday: 0, absentToday: 0, leavesApproved: 0 });
   const [leaves, setLeaves] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [settings, setSettings] = useState({ requiredWorkingHours: 6, allowedIPAddress: '' });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [manualForm, setManualForm] = useState({ teacherId: '', date: '' });
@@ -52,6 +54,22 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       toast({ title: 'Error', description: error.response?.data?.message || 'Failed to update leave', variant: 'destructive' });
+    }
+  };
+
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      await api.put('/admin/settings', {
+        requiredWorkingHours: Number(settings.requiredWorkingHours),
+        allowedIPAddress: settings.allowedIPAddress
+      });
+      toast({ title: 'Success', description: 'Settings updated successfully.' });
+    } catch (error) {
+      toast({ title: 'Error', description: error.response?.data?.message || 'Failed to update settings', variant: 'destructive' });
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 
@@ -180,9 +198,33 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Dynamic System Settings */}
+        {/* System Settings */}
         <div className="lg:col-span-1">
-          <SystemSettingsCard />
+          <Card className="shadow-xs border border-[#e2e8f0] sticky top-4">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-bold">System Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSaveSettings} className="space-y-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Required Daily Hours</Label>
+                  <Input type="number" min="1" max="24" value={settings.requiredWorkingHours} onChange={(e) => setSettings({...settings, requiredWorkingHours: e.target.value})} required className="py-1.5 text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Allowed Wi-Fi IP</Label>
+                  <Input type="text" placeholder="e.g. 192.168.1.100, 10.0.0.1" value={settings.allowedIPAddress} onChange={(e) => setSettings({...settings, allowedIPAddress: e.target.value})} className="py-1.5 text-xs" />
+                  <p className="text-[11px] text-[#94a3b8]">Restricts check-ins to school premises.</p>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isSavingSettings}
+                  className="w-full bg-[#EAD508] hover:bg-[#003D76] text-[#0f172a] hover:text-white mt-1 py-2 text-xs font-semibold shadow-xs transition-colors"
+                >
+                  {isSavingSettings ? 'Saving...' : 'Save Settings'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
