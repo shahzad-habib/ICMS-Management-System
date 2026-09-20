@@ -14,13 +14,7 @@ import {
   Download,
   PlusCircle,
   Clock,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  Wifi,
-  ShieldAlert,
   RotateCcw,
-  UserCheck,
   ChevronDown
 } from 'lucide-react';
 
@@ -352,14 +346,13 @@ export default function AttendanceLogs() {
                   <th className="py-2.5 px-3">Check-Out</th>
                   <th className="py-2.5 px-3">Hours</th>
                   <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3">Verification / IP</th>
                   <th className="py-2.5 px-3">Remarks / Reason</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e2e8f0] text-xs sm:text-sm">
                 {loading ? (
                   <tr>
-                    <td colSpan="8" className="py-12 text-center text-[#64748b]">
+                    <td colSpan="7" className="py-12 text-center text-[#64748b]">
                       <div className="flex items-center justify-center gap-2">
                         <RotateCcw className="w-4 h-4 animate-spin text-[#003E78]" />
                         <span>Loading attendance records...</span>
@@ -368,7 +361,7 @@ export default function AttendanceLogs() {
                   </tr>
                 ) : records.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="py-12 text-center text-[#94a3b8]">
+                    <td colSpan="7" className="py-12 text-center text-[#94a3b8]">
                       No attendance logs matching the selected filters.
                     </td>
                   </tr>
@@ -431,19 +424,6 @@ export default function AttendanceLogs() {
                             <ChevronDown className="w-3.5 h-3.5 absolute right-2 pointer-events-none text-current opacity-70" />
                           )}
                         </div>
-                      </td>
-                      <td className="py-2.5 px-3 whitespace-nowrap text-xs">
-                        {r.isManualEntry ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                            <UserCheck className="w-3 h-3" />
-                            Manual Override
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-[#003E78] border border-blue-100" title={r.ipAddress}>
-                            <Wifi className="w-3 h-3 text-emerald-600" />
-                            <span>Wi-Fi Verified</span>
-                          </span>
-                        )}
                       </td>
                       <td className="py-2.5 px-3 text-xs text-[#64748b] max-w-xs truncate">
                         {r.checkOutReason || '—'}
