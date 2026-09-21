@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { Shield, Loader2 } from 'lucide-react';
 
-const BG_IMAGE = 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1600&q=90&auto=format&fit=crop';
-
 export default function Login() {
   const [employeeId, setEmployeeId] = useState('');
   const [password, setPassword]     = useState('');
@@ -84,44 +82,20 @@ export default function Login() {
         }
       `}</style>
 
-      {/* ── Full-screen background ── */}
-      <div style={{
-        position: 'fixed', inset: 0,
-        backgroundImage: `url("${BG_IMAGE}")`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        filter: 'brightness(0.75)',
-        zIndex: 0,
-      }} />
-
-      {/* ── Subtle dark overlay ── */}
-      <div style={{
-        position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.22)',
-        zIndex: 1,
-      }} />
-
-      {/* ── Page layout ── */}
-      <div style={{
-        position: 'relative', zIndex: 2,
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px 16px',
-      }}>
+      {/* ── Page layout & Responsive Background ── */}
+      <div className="relative min-h-screen w-full flex items-center justify-center p-4 bg-[url('/assets/login-bg.png')] bg-cover bg-center bg-no-repeat">
 
         {/* ═══ GLASSMORPHISM CARD ═══ */}
         <div style={{
           width: '100%',
           maxWidth: 420,
-          background: 'rgba(10, 16, 14, 0.25)',
-          backdropFilter: 'blur(3px)',
-          WebkitBackdropFilter: 'blur(3px)',
-          border: '1px solid rgba(255,255,255,0.18)',
-          borderRadius: '0px',
+          background: 'rgba(10, 25, 47, 0.82)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255,255,255,0.20)',
+          borderRadius: '16px',
           padding: '44px 36px 36px',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.15)',
+          boxShadow: '0 20px 50px rgba(0, 25, 50, 0.30), inset 0 1px 0 rgba(255,255,255,0.20)',
           position: 'relative',
           overflow: 'hidden',
         }}>
