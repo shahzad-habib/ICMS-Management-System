@@ -107,7 +107,7 @@ export default function InstallPrompt() {
           className="fixed bottom-3 sm:bottom-4 left-3 right-3 sm:left-auto sm:right-5 sm:max-w-md z-50 transition-all duration-300 transform translate-y-0"
         >
           <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl border border-slate-200/80 ring-1 ring-black/5 flex flex-col gap-3">
-            <div className="flex items-start gap-3">
+            <div className="flex items-center gap-3">
               {/* App Icon */}
               <div className="relative flex-shrink-0">
                 <img
@@ -122,17 +122,9 @@ export default function InstallPrompt() {
 
               {/* Text Info */}
               <div className="flex-1 min-w-0 pr-6">
-                <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-bold text-[#0f172a] truncate">
-                    ICMS Attendance
-                  </h4>
-                  <span className="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/60">
-                    PWA App
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                  Install for faster 1-tap access, native mobile performance, and offline support.
-                </p>
+                <h4 className="text-sm font-bold text-[#0f172a] truncate">
+                  ICMS Attendance
+                </h4>
               </div>
 
               {/* Close Button */}
